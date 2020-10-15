@@ -1,18 +1,18 @@
 
 	<?php
-  require 'config.php';
+  require 'crud.php';
+$update= new crud();
 
 if(isset($_GET['iid'])){
   $iid= $_GET['iid'];
 
   
-   $det=mysqli_query($connection,"select * from registeration where UId=$iid ");
-
+   $id="select * from registeration where UId=$iid ";
+   $detail=$update->conn->query($id);
   
-   $content =mysqli_fetch_assoc($det);
+   $content =mysqli_fetch_assoc($detail);
 
 }
-
 if(isset($_POST['submit'])){
   $iid = $_POST['userId']; 
 	$fname =  $_POST['fname'];
@@ -22,25 +22,15 @@ if(isset($_POST['submit'])){
 	$contact = $_POST['contact'];
 	
 
+
    
     $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-   
-	  $edit= mysqli_query($connection,"UPDATE registeration SET fname='$fname', lname='$lname',
-	   bdate='$bdate', email='$email' WHERE UId='$iid'  ");
-	  if($edit===true){
-	  
     
-      echo "<script>
-alert('updated successfully');
-window.location.href='register.php';
-</script>";
 
+    $update->edit('registeration',['fname'=>$fname,'lname'=>$lname,'bdate'=>$bdate,'contact'=>$contact,'email'=>$email] , " UId=$iid");
+    
 
-	  }
-else{
-	echo"sorry updation failed";
-}
-}
+ }
 	?>
 	<!DOCTYPE html>
 <html>
@@ -63,19 +53,31 @@ else{
 
  <input type="hidden" value="<?php echo $content["UId"]; ?>" name="userId">
 	<label  class="control-label ">FirstName :</label>
-	<input type="text" value="<?php echo $content["fname"]; ?>" id="fname" name="fname" ><br><br>
+	<input type="text" value="<?php echo $content["fname"]; ?>" id="fname" name="fname" >
+    &nbsp;<span id="fname1" style="color: red;"></span>
+	<br><br>
 
 	<label  class="control-label ">LastName :</label>
-	<input type="text" value="<?php echo $content["lname"]; ?>" id="lname" name="lname" ><br><br>
+	<input type="text" value="<?php echo $content["lname"]; ?>" id="lname" name="lname" >
+	&nbsp;<span id="lname1" style="color: red;"></span>
+	<br><br>
 
    <label  class="control-label  ">BirthDate:</label>
-    <input type="date" value="<?php echo $content["bdate"]; ?>" id="bdate" name="bdate"><br><br>
+    <input type="date" value="<?php echo $content["bdate"]; ?>" id="bdate" name="bdate">
+    &nbsp;<span id="bdate1" style="color: red;"></span>
+    <br><br>
 
 	<label  class="control-label ">Contact :</label>
-	<input type="text" value="<?php echo $content["contact"]; ?>" id="contact" name="contact"><br><br>
+	<input type="text" value="<?php echo $content["contact"]; ?>" id="contact" name="contact">
+	&nbsp;<span id="contact1" style="color: red;"></span>
+	<br><br>
 
 	<label  class="control-label ">UserId :</label>
-	<input type="email"   value="<?php echo $content["email"]; ?>" id="email" name="email" ><br><br>
+	<input type="email"   value="<?php echo $content["email"]; ?>" id="email" name="email" >
+	&nbsp;<span id="email1" style="color: red;"></span>
+	<br><br>
+
+	
 
 	
 </div>
@@ -85,22 +87,25 @@ else{
 <script type="text/javascript">
 
 	$(document).ready(function(){
-		var contact=$("#contact").val();
+		
 
-		$("#submit").click(function(){
+		 $("#details").hover(function(){
 			
 			var fname=$("#fname").val();
 			var lname=$("#lname").val();
 			var bdate=$("#bdate").val();
-			
+			var contact=$("#contact").val();
+
 			var email=$("#email").val();
 			
 			valid=true;
 
-	if(valid && fname==''|| lname==''||bdate==''||contact==''||email==''||password=='')
+	if(valid && fname==''|| lname==''||bdate==''||contact==''||email=='')
 	{
-			alert("Please fill all the fields");
-	}
+			$('#errormsg').text("Please fill all the fields");
+	}else{
+         $('#errormsg').text("");
+    }
 		
 
 })
@@ -110,7 +115,7 @@ else{
           var regex = new RegExp("^[a-zA-Z ]*$");
             if (regex.test(e.target.value)==0)
              {
-            	alert("only alphabets!! ")
+            	 $('#fname1').text("**only alphabets!!");
             }
                })
     
@@ -119,16 +124,16 @@ $("#lname").on('blur',function(e)
           var regex = new RegExp("^[a-zA-Z ]*$");
             if (regex.test(e.target.value)==0) 
             {
-            	alert("only alphabets!!");
+            	 $('#lname1').text("**only alphabets!!");
             }
                })
  $("#contact").on('blur',function(e)
  {
  	var regex= new RegExp("^[1-9]{1}[0-9]{9}$");
  	console.log(e.target.value, regex.test(e.target.value))
-     if(regex.test(e.target.value)==0 || (contact.length)<10)
+     if(regex.test(e.target.value)==0  && (contact.length)<10)
      {
- 		alert("format is wrong");
+         $('#contact1').text("**only 10 digits !!");
 		
 }
 })
@@ -137,8 +142,7 @@ $("#email").on('blur',function(e)
    var regex= new RegExp("^[A-Z0-9a-z._%+-]+@[A-Za-z.-]+\\.[A-Za-z]{2,64}");
    if(regex.test(e.target.value)==0)
    {
-   	   alert("email is in wrong format");
-   	   
+   	   $('#email1').text("**format is wrong!!");
    }
 })
 })
